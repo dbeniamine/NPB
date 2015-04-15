@@ -62,7 +62,7 @@ then
     echo "This script must be run as root"
     exit 1
 fi
-lockmachine "exp in progress"
+# lockmachine "exp in progress"
 testAndExitOnError "can't lock machine"
 #parsing args
 while getopts "ho:e:r:" opt
@@ -101,8 +101,6 @@ cd -
 exec > >(tee $OUTPUT) 2>&1
 dumpInfos
 
-
-make distclean && make
 for run in $(seq 1 $RUN)
 do
     echo "RUN : $run"
@@ -135,5 +133,5 @@ cat /sys/devices/system/cpu/cpu0/thermal_throttle/*
 END_TIME=$(date +%y%m%d_%H%M%S)
 echo "Expe ended at $END_TIME"
 chown -R $OWNER:$OWNER $EXP_DIR
-unlockmachine
+# unlockmachine
 
