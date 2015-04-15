@@ -1,0 +1,52 @@
+
+
+ NAS Parallel Benchmarks (NPB3.3-OMP) - IS Benchmark
+
+ Size:  2147483648  (class D)
+ Iterations:  10
+ Number of available threads:  64
+
+Macros:	numa	tabarnac	CYCLIC
+
+   iteration
+        1
+        2
+        3
+        4
+        5
+        6
+        7
+        8
+        9
+        10
+
+
+ IS Benchmark Completed
+ Class           =                        D
+ Size            =               2147483648
+ Iterations      =                       10
+ Time in seconds =                   32.160
+ Total threads   =                       64
+ Avail threads   =                       64
+ Mop/s total     =                   667.76
+ Mop/s/thread    =                    10.43
+ Operation type  =              keys ranked
+ Verification    =               SUCCESSFUL
+ Version         =                    3.3.1
+ Compile date    =              14 Apr 2015
+
+ Compile options:
+    CC           = cc
+    CLINK        = $(CC)
+    C_LIB        = -lnuma
+    C_INC        = (none)
+    CFLAGS       = -O2 -g -fopenmp
+    CLINKFLAGS   = -O2 -fopenmp
+
+
+ Please send all errors/feedbacks to:
+
+ NPB Development Team
+ npb@nas.nasa.gov
+
+
