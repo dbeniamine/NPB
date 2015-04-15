@@ -1,1 +1,3 @@
 bin/*
+*.o
+sys/setparams
