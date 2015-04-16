@@ -46,6 +46,7 @@ Results
 ```{r ExecTime, echo=F}
 stat<-ddply(data,c("Runtime","Opti"),summarise,
             N=length(Time),mean=mean(Time),sd=sd(Time),se=sd/sqrt(N))
+stat <- subset(stat, stat$Opti!="libnuma")
 p<-ggplot(stat,aes(x=Runtime,y=mean, fill=Opti))
 p  <-  p + geom_bar(stat="identity", position=position_dodge(.9) )
 p  <-  p + geom_errorbar(aes(ymin=mean-se, ymax=mean+se),
@@ -53,7 +54,7 @@ p  <-  p + geom_errorbar(aes(ymin=mean-se, ymax=mean+se),
                   position=position_dodge(.9))
 p <- p + xlab("Execution type")
 p <- p + ylab("Time (s)")
-p <- p + ggtitle("Execution time of matrix multiplication")
+#p <- p + ggtitle("Execution time of matrix multiplication")
 p <- p + guides(fill=guide_legend(title="Optimization"))
 # BW theme
 p <- p + theme_bw()

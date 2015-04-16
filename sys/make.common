@@ -57,7 +57,9 @@ npbparams.h: ../config/make.def
 	../sys/setparams ${BENCHMARK} ${CLASS}
 
 # So that "make benchmark-name" works
-${BENCHMARK}:  default
-${BENCHMARKU}: default
+${BENCHMARK}:  ${PROGRAM}
+${BENCHMARKU}: ${PROGRAM}
+# for kmaf: ${BENCHMARK}:  default
+# for kmaf: ${BENCHMARKU}: default
 
 
