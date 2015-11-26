@@ -6,13 +6,18 @@ OUTPUT="exp.log"
 OWNER=dbeniamine
 RUN=30
 EXEC=./bin/is.D
-RTNAME=('base' 'numabalance')
-declare -A RTCMD
-RTCMD=([base]="sysctl kernel.numa_balancing=0" [numabalance]="sysctl kernel.numa_balancing=1")
-CONFIGS=('dynamic' 'cyclic' 'tabarnac' 'libnuma' )
-declare -A TARGET
-TARGET=([dynamic]="$EXEC-dynamic" [cyclic]="$EXEC-cyclic" [tabarnac]="$EXEC-tabarnac"\
-	[libnuma]="$EXEC-libnuma 4")
+# State for aff, balancing and interleave
+STATES=('off' 'on')
+# Affinity
+declare -A AFFCMD
+AFFCMD=([on]='export GOMP_CPU_AFFINITY=0-63' [off]='unset GOMP_CPU_AFFINITY')
+# numa_balancing
+declare -A BALANCECMD
+BALANCECMD=([off]="sysctl kernel.numa_balancing=0" [on]="sysctl kernel.numa_balancing=1")
+#Interleave
+declare -A INTERLEAVECMD
+INTERLEAVECMD=([on]="numactl -i all" [off]='')
+CONFIGS=('dynamic' 'cyclic' 'tabarnac')
 #report error if needed
 function testAndExitOnError
 {
@@ -92,34 +97,43 @@ EXP_DIR="$EXP_NAME"_$(date +%y%m%d_%H%M)
 mkdir $EXP_DIR
 OUTPUT="$EXP_DIR/$OUTPUT"
 
-#Do the first compilation
-cd ../src/module
-make
-cd -
-
 #Continue but change the OUTPUT
 exec > >(tee $OUTPUT) 2>&1
 dumpInfos
+
+#Remove me
+function res()
+{
+    num=$(printf "%d\n" 0x$(echo "$1" | md5sum | cut -c 1-4))
+    echo "Time in seconds   =                                        $num"
+}
+
 
 for run in $(seq 1 $RUN)
 do
     echo "RUN : $run"
     #Actual exp
-    for runtime in ${RTNAME[@]}
+    for affst in ${STATES[@]}
     do
-        echo "$runtime"
-	${RTCMD[$runtime]}
-        LOGDIR="$EXP_DIR/$runtime/run-$run"
-        mkdir -p $LOGDIR
-        #Actual experiment
-        for conf in ${CONFIGS[@]}
+	${AFFCMD[$affst]}
+	echo $GOMP_CPU_AFFINITY
+        for balst in ${STATES[@]}
         do
-            if [ $conf == "libnuma" ] && [ $runtime == "numabalance" ]
-	    then
-		continue
-	    fi		
-            echo ${TARGET[$conf]} > $LOGDIR/$conf.log 2> $LOGDIR/$conf.err
-            testAndExitOnError "run number $run"
+	    ${BALANCECMD[$balst]}
+            for interst in ${STATES[@]}
+            do
+		echo "interleave $interst"
+		LOGDIR="$EXP_DIR/affinity-$affst/balancing-$balst/interleave-$interst/run-$run/"
+                mkdir -p $LOGDIR
+                #Actual experiment
+                for conf in ${CONFIGS[@]}
+                do
+                    #echo ${INTERLEAVECMD[$interst]} $EXEC-$conf > $LOGDIR/$conf.log 2> $LOGDIR/$conf.err
+                    meta="$affst-$balst-$interst-$conf"
+                    res $meta> $LOGDIR/$conf.log 2> $LOGDIR/$conf.err
+                    testAndExitOnError "run number $run"
+		done
+            done
         done
     done
 done
@@ -134,4 +148,3 @@ END_TIME=$(date +%y%m%d_%H%M%S)
 echo "Expe ended at $END_TIME"
 chown -R $OWNER:$OWNER $EXP_DIR
 # unlockmachine
-

@@ -24,19 +24,16 @@ Optimizations:
 
 Execution type:
 
-+ base: no tool used for mapping (first touch)
-+ numbalance: use kernel.numa_balancing
++ Affinity: on/ off,    GOMP_CPU_AFFINITY=0-63
++ balancing: on/off     kernel.numa_balancing
++ interleave: on/off    numactl -i all
+
 
 
 Expectations
 ------------
 
-The parallel part of IS is small, so numa balancing might not be efficient
-(cost of the overhead).
-Tabarnac should be good even with first touch as exclusivity is very high and
-there is no "one thread" initialization.
-If libnuma isn't the best Optimization, maybe there is a problem in my code
-...
+best should be tabrnac aff on blancing off interleave off
 
 Results
 -------
@@ -44,21 +41,23 @@ Results
 ###   Execution time
 
 ```{r ExecTime, echo=F}
-stat<-ddply(data,c("Runtime","Opti"),summarise,
+stat<-ddply(data,c("Affinity", "Balancing","Interleave" ,"Opti"),summarise,
             N=length(Time),mean=mean(Time),sd=sd(Time),se=sd/sqrt(N))
-p<-ggplot(stat,aes(x=Runtime,y=mean, fill=Opti))
+p  <- ggplot(stat,aes(x=Affinity,y=mean, fill=Opti))
 p  <-  p + geom_bar(stat="identity", position=position_dodge(.9) )
 p  <-  p + geom_errorbar(aes(ymin=mean-se, ymax=mean+se),
                   width=.2,                    # Width of the error bars
                   position=position_dodge(.9))
+p  <- p + facet_grid(Balancing ~ Interleave)
 p <- p + xlab("Execution type")
 p <- p + ylab("Time (s)")
-p <- p + ggtitle("Execution time of matrix multiplication")
-p <- p + guides(fill=guide_legend(title="Optimization"))
+p <- p + ggtitle("Execution time of IS.D")
+p <- p + guides(fill=guide_legend(title="Thread scheduling"))
 # BW theme
 p <- p + theme_bw()
 p <-  p + theme(panel.grid.minor = element_line(colour = "black", linetype="dashed", size = 0.1),
-        panel.grid.major = element_line(colour = "black", size = 0.1))
+        panel.grid.major = element_line(colour = "black", size = 0.1),
+        legend.position="bottom")
 p <- p + scale_fill_grey()
 #p <- p+ theme(legend.position="none")
 show(p)
@@ -69,32 +68,6 @@ Detailled Values:
 
 ```{r DetailledValues, echo=F}
 show(stat)
-```
-
-### SpeedUp
-
-```{r Speedup, echo=F}
-stat1 <- subset(stat, stat$Runtime=="numabalance")
-speedup <- c("numabalance", as.character(stat1[which.min(stat1$mean),]$Opti),
-             stat1[stat1$Opti=="dynamic",]$mean / min(stat1$mean))
-stat1 <- subset(stat, stat$Runtime=="base")
-speedup <- rbind(speedup, c("base", as.character(stat[which.min(stat1$mean),]$Opti),
-                stat1[stat1$Opti=="dynamic",]$mean / min(stat1$mean)))
-speedup <- data.frame(speedup)
-colnames(speedup) <- c("Runtime",  "Opti", "Val")
-p<-ggplot(speedup,aes(x=Runtime,y=Val, fill=Opti))
-p  <-  p + geom_bar(stat="identity", position=position_dodge(.9) )
-p <- p + xlab("Execution type")
-p <- p + ylab("Best SpeedUp")
-p <- p + ggtitle("Best Speedup for matrix multiplications")
-# BW theme
-p <- p + guides(fill=guide_legend(title="Optimization"))
-p <- p + theme_bw()
-p <-  p + theme(panel.grid.minor = element_line(colour = "black", linetype="dashed", size = 0.1),
-        panel.grid.major = element_line(colour = "black", size = 0.1))
-p <- p + scale_fill_grey() #breaks=c(4,2))
-show(p)
-ggsave("figure/speedup.pdf", width=10, height=10)
 ```
 
 Conclusions
