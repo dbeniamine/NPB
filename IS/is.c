@@ -62,9 +62,9 @@
 #define USE_BUCKETS
 
 /* Uncomment below for cyclic schedule */
-#define SCHED_CYCLIC
+//#define SCHED_CYCLIC
 
-#define TABARNAC
+//#define TABARNAC
 #ifdef TABARNAC
 #define SPLITS 2 // split the gaussian in 3 parts
 #endif //TABARNAC
@@ -547,6 +547,10 @@ ccontrol_create_zone(ccontrol_zone1, c_set2,
 #endif
 
 #ifdef USE_BUCKETS
+    printf("Mem usage: %gGio\n", sizeof(INT_TYPE)*(SIZE_OF_BUFFERS+MAX_KEY+
+            SIZE_OF_BUFFERS+TEST_ARRAY_SIZE+NUM_BUCKETS+num_procs*NUM_BUCKETS)/
+            (1024.0*1024.0*1024.0));
+
     bucket_size = (INT_TYPE **)alloc_mem(sizeof(INT_TYPE *) * num_procs);
 
     for (i = 0; i < num_procs; i++) {
@@ -966,6 +970,9 @@ void rank( int iteration )
 
 int main( int argc, char **argv )
 {
+
+
+
 
     int             i, iteration, timer_on;
 
